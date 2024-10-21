@@ -1,0 +1,89 @@
+service: kp_packaging
+
+provider:
+  name: aws
+  runtime: python3.11
+  stage: dev
+  region: us-east-1
+  memorySize: 256
+  timeout: 30
+
+functions:
+  get_meta_callback_webhook:
+    handler: lambdas/apis/get_meta_callback_webhook.handler
+    package:
+      patterns:
+        - '!*/**' # Exclude all files and directories by default
+        - '!**/*.json'
+        - '!**/*.yml'
+        - '!**/*.js'
+        - lambdas/apis/get_meta_callback_webhook.py # Include the webhook file explicitly
+    events:
+      - http:
+          path: kp_packaging/meta/wa/event # Updated path to reflect the correct project endpoint
+          method: get
+          cors:
+            origins:
+              - '*' # Allow requests from any origin
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+          - s3:GetObject
+        Resource: "arn:aws:s3:::kp-packaging-serverless-deployments/*" # Modify S3 bucket to match the project
+
+
+
+
+
+
+
+
+
+
+
+
+# get_meta_callback_webhook:
+#     runtime: python3.11
+#     timeout: 30
+#     memorySize: 256
+#     handler: get_meta_callback_webhook/handler.handler
+#     package:
+#       patterns:
+#         - '!*/**' # Exclude all files & Dir
+#         - '!*/*.json'
+#         - '!**/*.json'
+#         - '!**/*.yml'
+#         - '!*/*.js'
+#         - get_meta_callback_webhook/** # Include all files in meta_wa_incoming_webhook directory
+#     events:
+#       - http:
+#           path: cello/meta/wa/event
+#           method: get
+#           cors:
+#             origins:
+#               - '*'
+#             headers:
+#               - Content-Type
+#               - X-Amz-Date
+#               - Authorization
+#               - X-Api-Key
+#               - X-Amz-Security-Token
+#               - X-Amz-User-Agent
+#             allowCredentials: true
+
+#     iamRoleStatements:
+#       - Effect: Allow
+#         Action:
+#           - s3:PutObject
+#           - s3:GetObject
+#         Resource: "arn:aws:s3:::ntg-serverless-deployments/*"
